@@ -1,10 +1,5 @@
 const fs = require("fs");
-const readline = require("readline");
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
+const validator = require("validator");
 
 const dirPath = "./data";
 if (!fs.existsSync(dirPath)) {
@@ -16,24 +11,35 @@ if (!fs.existsSync(dataPath)) {
   fs.writeFileSync(dataPath, "[]", "utf-8");
 }
 
-const tulisPertanyaan = (pertanyaan) => {
-  return new Promise((resolve, reject) => {
-    rl.question(pertanyaan, (nama) => {
-      resolve(nama);
-    });
-  });
-};
-
 const simpanContact = (nama, email, noHP) => {
   const contact = { nama, email, noHP };
   const fileBuffer = fs.readFileSync("./data/contacts.json", "utf-8");
   const contacts = JSON.parse(fileBuffer);
 
+  // cek duplikat
+  const duplikat = contacts.find((contact) => contact.nama === nama);
+  if (duplikat) {
+    console.log("Contact sudah terdaftar, gunakan nama lain!");
+    return false;
+  }
+
+  // cek email
+  if (email) {
+    if (!validator.isEmail(email)) {
+      console.log("Email tidak valid!");
+      return false;
+    }
+  }
+
+  if (!validator.isMobilePhone(noHP, "id-ID")) {
+    console.log("No HP tidak valid!");
+    return false;
+  }
+
   contacts.push(contact);
 
   fs.writeFileSync("./data/contacts.json", JSON.stringify(contacts), "utf-8");
-
-  rl.close();
+  console.log("Data berhasil diinput!");
 };
 
-module.exports = { tulisPertanyaan, simpanContact };
+module.exports = { simpanContact };
